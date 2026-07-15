@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+
+{% block title %}Subscribe — Trendjack Hunter{% endblock %}
+
+{% block content %}
+
+
+<h2 class="mb-1"><i class="bi bi-star-fill text-warning"></i> Subscription</h2>
+
+{% if has_access %}
+<div class="alert alert-success">
+    <i class="bi bi-check-circle-fill"></i>
+    You have an active subscription
+    {% if active_sub %}
+        ({{ active_sub.get_plan_display }}, renews/expires {{ active_sub.current_period_end|date:"M j, Y" }}).
+    {% endif %}
+    Enjoy full access to every brief!
+</div>
+{% else %}
+<p class="text-muted mb-4">
+    Subscribe to unlock full AI-generated content briefs for every trend on the dashboard.
+</p>
+
+<div class="row g-4 mb-4">
+    <!-- Monthly plan -->
+    <div class="col-md-6">
+        <div class="pricing-card card h-100 border-0 shadow-sm">
+            <div class="card-body text-center p-4">
+                <h4 class="fw-bold">Monthly</h4>
+                <p class="display-5 fw-bold mb-0 mt-2">KES {{ monthly_price }}</p>
+                <p class="text-muted mb-4">Billed every 30 days</p>
+                <div class="d-grid gap-2">
+                    <form method="post" action="{% url 'accounts:start_card_subscription' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="plan" value="monthly">
+                        <button type="submit" class="btn btn-primary btn-lg w-100">
+                            <i class="bi bi-credit-card"></i> Pay by Card
+                        </button>
+                    </form>
+                    <button type="button" class="btn btn-outline-success btn-lg w-100"
+                            data-bs-toggle="modal" data-bs-target="#mpesaModal" data-plan="monthly">
+                        <i class="bi bi-phone"></i> Pay by M-Pesa
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Yearly plan -->
+    <div class="col-md-6">
+        <div class="pricing-card card h-100 border-0 shadow">
+            <span class="best-value-ribbon">BEST VALUE</span>
+            <div class="card-body text-center p-4">
+                <h4 class="fw-bold">Yearly</h4>
+                <p class="display-5 fw-bold mb-0 mt-2">KES {{ yearly_price }}</p>
+                <p class="text-muted mb-4">Billed once a year</p>
+                <div class="d-grid gap-2">
+                    <form method="post" action="{% url 'accounts:start_card_subscription' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="plan" value="yearly">
+                        <button type="submit" class="btn btn-primary btn-lg w-100">
+                            <i class="bi bi-credit-card"></i> Pay by Card
+                        </button>
+                    </form>
+                    <button type="button" class="btn btn-outline-success btn-lg w-100"
+                            data-bs-toggle="modal" data-bs-target="#mpesaModal" data-plan="yearly">
+                        <i class="bi bi-phone"></i> Pay by M-Pesa
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="alert alert-info d-flex gap-2 align-items-start">
+    <i class="bi bi-info-circle mt-1"></i>
+    <span class="small">
+        M-Pesa payments prompt a PIN entry on your phone (STK Push) and need to be re-confirmed
+        each billing cycle. Card payments are billed automatically.
+    </span>
+</div>
+
+<!-- M-Pesa modal: collects phone number, then submits to start_mpesa_subscription -->
+<div class="modal fade" id="mpesaModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow rounded-4">
+            <form method="post" action="{% url 'accounts:start_mpesa_subscription' %}">
+                {% csrf_token %}
+                <input type="hidden" name="plan" id="mpesaPlanInput" value="">
+
+                <div class="modal-header border-0 pb-2">
+                    <div class="d-flex align-items-center gap-3">
+                        <span class="mpesa-icon-badge">
+                            <i class="bi bi-phone-fill"></i>
+                        </span>
+                        <div>
+                            <h5 class="modal-title fw-bold mb-0">Pay with M-Pesa</h5>
+                            <p class="text-muted small mb-0">Enter your M-Pesa number to receive the payment prompt</p>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body px-4 pb-2">
+                    <label class="filter-label mb-2">{{ mpesa_form.phone_number.label }}</label>
+                    <div class="input-group input-group-mpesa">
+                        <span class="input-group-text bg-white border-end-0">
+                            <i class="bi bi-telephone-fill text-success"></i>
+                        </span>
+                        {{ mpesa_form.phone_number }}
+                    </div>
+                    <div class="form-text mt-1">{{ mpesa_form.phone_number.help_text }}</div>
+
+                    <div class="mpesa-secure-box mt-3">
+                        <div class="d-flex align-items-start gap-3">
+                            <i class="bi bi-shield-check-fill text-success fs-4"></i>
+                            <div>
+                                <div class="fw-bold text-success">Secure payment</div>
+                                <div class="small text-muted">
+                                    You will receive an STK push notification on your phone
+                                    to complete the payment.
+                                </div>
+                            </div>
+                            <i class="bi bi-phone-vibrate fs-1 text-success opacity-25 ms-auto"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer border-0 pt-2 pb-4 px-4">
+                    <button type="submit" class="btn btn-mpesa w-100">
+                        <i class="bi bi-send-fill"></i> Send M-Pesa Prompt
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.querySelectorAll('[data-bs-target="#mpesaModal"]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+        document.getElementById('mpesaPlanInput').value = btn.getAttribute('data-plan');
+    });
+});
+</script>
+{% endblock %}

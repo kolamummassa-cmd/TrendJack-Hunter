@@ -1,0 +1,308 @@
+{% extends "base.html" %}
+
+{% block title %}{{ trend.name }} — Trendjack Hunter{% endblock %}
+
+{% block content %}
+<a href="{% url 'trends:dashboard' %}" class="btn btn-sm btn-outline-secondary mb-3">
+    <i class="bi bi-arrow-left"></i> Back to Dashboard
+</a>
+
+<div class="d-flex justify-content-between align-items-start flex-wrap mb-3">
+    <div>
+        <h1 class="mb-1">{{ trend.name }}</h1>
+        <p class="text-muted mb-0">
+            Detected {{ trend.created_at|timesince }} ago
+            {% if trend.status == "briefed" %}
+                &middot; <span class="score-badge score-strong">
+                    <i class="bi bi-check-circle"></i> Brief Ready
+                </span>
+            {% else %}
+                &middot; <span class="score-badge score-decent">Awaiting Brief</span>
+            {% endif %}
+        </p>
+    </div>
+    {% if trend.brief %}
+    <div class="text-end">
+        <div class="score-badge {% if trend.brief.urgency_score >= 80 %}score-strong{% elif trend.brief.urgency_score >= 50 %}score-decent{% elif trend.brief.urgency_score > 0 %}score-weak{% else %}score-irrelevant{% endif %} fs-6">
+            <i class="bi bi-lightning-charge"></i> Urgency {{ trend.brief.urgency_score }}/100
+        </div>
+        {% if trend.brief.estimated_lifespan %}
+        <div class="small text-muted mt-1">
+            <i class="bi bi-hourglass-split"></i> Est. lifespan: {{ trend.brief.estimated_lifespan }}
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+
+<!-- Score summary row -->
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body text-center">
+                <div class="text-muted small text-uppercase mb-1">Entrepreneur Relevance</div>
+                <div class="display-6 fw-bold stat-number-relevance">
+                    {{ trend.relevance_score }}<span class="fs-5 text-muted">/100</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body text-center">
+                <div class="text-muted small text-uppercase mb-1">Trend Score</div>
+                <div class="display-6 fw-bold stat-number-trend">{{ trend.trend_score }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body text-center">
+                <div class="text-muted small text-uppercase mb-1">Sources</div>
+                <div class="display-6 fw-bold">{{ trend.source_count }}</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Subscription Access Banner -->
+{% if not has_access %}
+<div class="gradient-banner mb-4">
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+        <div>
+            <h5 class="mb-1">
+                <i class="bi bi-star-fill"></i> Subscription Required
+            </h5>
+            <p class="mb-0 small">
+                Subscribe to unlock full AI-generated content briefs for every trend.
+                Pay monthly or yearly, by card or M-Pesa.
+            </p>
+        </div>
+        {% if user.is_authenticated %}
+            <a href="{% url 'accounts:subscribe' %}" class="btn btn-light fw-bold">
+                Subscribe to Unlock
+            </a>
+        {% else %}
+            <a href="{% url 'accounts:signup' %}?next={{ request.path|urlencode }}" class="btn btn-light fw-bold">
+                Subscribe to Unlock
+            </a>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
+{% if trend.brief %}
+{% with brief=trend.brief %}
+
+{% if has_access %}
+<!-- FULL BRIEF — shown to subscribed users -->
+
+<!-- Why It's Trending -->
+<div class="card border-0 shadow-sm mb-3">
+    <div class="card-body brief-section">
+        <h6><i class="bi bi-graph-up-arrow"></i> Why It's Trending</h6>
+        <p class="mb-3">{{ brief.why_trending }}</p>
+
+        <h6><i class="bi bi-person-badge"></i> Why Entrepreneurs Should Care</h6>
+        <p class="mb-3">{{ brief.why_entrepreneurs_care }}</p>
+
+        <h6><i class="bi bi-compass"></i> Suggested Content Angle</h6>
+        <p class="mb-0">{{ brief.content_angle }}</p>
+    </div>
+</div>
+
+<!-- Ready-to-use content -->
+<div class="row g-3 mb-3">
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <h6 class="d-flex align-items-center gap-2">
+                    <i class="bi bi-linkedin text-primary"></i> Suggested LinkedIn Post
+                </h6>
+                <p class="mb-2" style="white-space: pre-wrap;">{{ brief.linkedin_post_idea }}</p>
+                <button class="btn btn-sm btn-outline-secondary copy-btn" data-copy-target="linkedin-text">
+                    <i class="bi bi-clipboard"></i> Copy
+                </button>
+                <span id="linkedin-text" class="d-none">{{ brief.linkedin_post_idea }}</span>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <h6 class="d-flex align-items-center gap-2">
+                    <i class="bi bi-camera-reels text-danger"></i> Suggested Instagram Reel
+                </h6>
+                <p class="mb-2" style="white-space: pre-wrap;">{{ brief.instagram_reel_idea }}</p>
+                <button class="btn btn-sm btn-outline-secondary copy-btn" data-copy-target="reel-text">
+                    <i class="bi bi-clipboard"></i> Copy
+                </button>
+                <span id="reel-text" class="d-none">{{ brief.instagram_reel_idea }}</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm h-100 bg-light">
+            <div class="card-body">
+                <h6><i class="bi bi-magnet"></i> Suggested Hook</h6>
+                <p class="fs-5 fst-italic mb-0">"{{ brief.suggested_hook }}"</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm h-100 bg-light">
+            <div class="card-body">
+                <h6><i class="bi bi-type-h1"></i> Suggested Title</h6>
+                <p class="fs-5 fw-semibold mb-0">{{ brief.suggested_title }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Video script (30-60s) -->
+{% if brief.video_script %}
+<div class="card border-0 shadow-sm mb-3">
+    <div class="card-body">
+        <h6 class="d-flex align-items-center gap-2">
+            <i class="bi bi-film text-dark"></i> 30-60 Second Video Script
+        </h6>
+        <p class="mb-2" style="white-space: pre-wrap;">{{ brief.video_script }}</p>
+        <button class="btn btn-sm btn-outline-secondary copy-btn" data-copy-target="script-text">
+            <i class="bi bi-clipboard"></i> Copy
+        </button>
+        <span id="script-text" class="d-none">{{ brief.video_script }}</span>
+    </div>
+</div>
+{% endif %}
+
+<!-- Remix template -->
+{% if brief.remix_template %}
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+        <h6 class="d-flex align-items-center gap-2">
+            <i class="bi bi-arrow-repeat text-success"></i> Remix Template
+        </h6>
+        <p class="mb-0 text-muted">
+            How this trend's format works, and how to adapt it to a founder/business story —
+            reusable even after this specific trend fades.
+        </p>
+        <p class="mb-0 mt-2">{{ brief.remix_template }}</p>
+    </div>
+</div>
+{% endif %}
+
+{% else %}
+<!-- TEASER — shown to non-subscribed users -->
+<div class="card border-primary border-2 mb-4">
+    <div class="card-body text-center py-5">
+        <h3>🔒 Premium AI Brief Locked</h3>
+        <p class="text-muted fs-5">
+            This content brief is available to subscribers only.
+        </p>
+
+        <!-- Teaser preview -->
+        <div class="alert alert-secondary mt-3 text-start">
+            <strong><i class="bi bi-eye"></i> Preview:</strong>
+            {{ brief.why_trending|truncatewords:25 }}...
+        </div>
+
+        <p class="mt-3 fw-bold">Subscribe to unlock:</p>
+        <ul class="list-unstyled text-start d-inline-block mb-4">
+            <li>✅ Why this trend is happening</li>
+            <li>✅ Why entrepreneurs should care</li>
+            <li>✅ Suggested content angle</li>
+            <li>✅ LinkedIn post ideas</li>
+            <li>✅ Instagram Reel concepts</li>
+            <li>✅ Suggested hook and title</li>
+        </ul>
+        <br>
+        <a href="{% url 'accounts:subscribe' %}" class="btn btn-primary btn-lg">
+            Subscribe Now
+        </a>
+        <p class="text-muted small mt-3">
+            Pay monthly or yearly &nbsp;|&nbsp; Card or M-Pesa
+        </p>
+    </div>
+</div>
+{% endif %}
+
+{% endwith %}
+
+{% else %}
+<div class="alert alert-warning d-flex justify-content-between align-items-center flex-wrap gap-3">
+    <div>
+        <i class="bi bi-hourglass-split"></i>
+        This trend hasn't been briefed yet.
+        {% if trend.relevance_score < 40 %}
+            Its relevance score ({{ trend.relevance_score }}) is below the typical briefing threshold.
+        {% endif %}
+    </div>
+    {% if has_access and trend.relevance_score >= 40 %}
+    <form method="post" action="{% url 'trends:generate_brief' trend.pk %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-primary">
+            <i class="bi bi-magic"></i> Generate Brief
+        </button>
+    </form>
+    {% endif %}
+</div>
+{% endif %}
+
+<!-- Sources -->
+<div class="card border-0 shadow-sm">
+    <div class="card-body">
+        <h6 class="mb-3"><i class="bi bi-link-45deg"></i> Sources ({{ trend.articles.count }})</h6>
+        {% if trend.articles.all %}
+        <div class="table-responsive">
+            <table class="table table-sm table-hover align-middle mb-0">
+                <thead>
+                    <tr class="text-muted small text-uppercase">
+                        <th>Title</th>
+                        <th>Source</th>
+                        <th>Published</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for article in trend.articles.all %}
+                    <tr>
+                        <td>{{ article.title }}</td>
+                        <td><span class="badge bg-light text-dark border">{{ article.source }}</span></td>
+                        <td class="text-muted small">{{ article.published_at|date:"M d, Y"|default:"Unknown" }}</td>
+                        <td class="text-end">
+                            <a href="{{ article.url }}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-box-arrow-up-right"></i> Read
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-muted mb-0">No source articles linked.</p>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Copy button functionality
+document.querySelectorAll('.copy-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+        var targetId = btn.getAttribute('data-copy-target');
+        var text = document.getElementById(targetId).innerText;
+        navigator.clipboard.writeText(text).then(function () {
+            var original = btn.innerHTML;
+            btn.innerHTML = '<i class="bi bi-check2"></i> Copied!';
+            setTimeout(function () { btn.innerHTML = original; }, 1500);
+        });
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block title %}Trendjack Hunter — Startup Trend Intelligence{% endblock %}
+
+{% block content %}
+<div class="row align-items-center hero-section g-5">
+    <div class="hero-bg-blob hero-blob-violet"></div>
+    <div class="hero-bg-blob hero-blob-indigo"></div>
+    <div class="hero-bg-blob hero-blob-glow"></div>
+    <div class="col-lg-7 hero-content">
+        <span class="hero-pill-badge mb-3">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 0l2.4 9.6L24 12l-9.6 2.4L12 24l-2.4-9.6L0 12l9.6-2.4z"/>
+            </svg>
+            AI-Powered Trend Intelligence
+        </span>
+        <h1 class="display-4 fw-bold mb-3 mt-3">
+            Catch the trend <span class="gradient-text">before</span>
+            <span class="gradient-text">it's already over.</span>
+        </h1>
+        <p class="lead text-muted mb-4">
+            Trendjack Hunter scans startup, tech, and business news, scores what's actually
+            relevant to founders, and generates ready-to-post content briefs &mdash;
+            <strong>automatically</strong>.
+        </p>
+        <div class="d-flex gap-2 mb-4">
+            <a href="{% url 'trends:dashboard' %}" class="btn btn-primary btn-lg">
+                <i class="bi bi-grid-1x2"></i> Open Dashboard
+            </a>
+            <button type="button" class="btn btn-watch-demo btn-lg">
+                <i class="bi bi-play-fill"></i> Watch Demo
+            </button>
+        </div>
+        <div class="d-flex gap-4 flex-wrap">
+            <div class="d-flex align-items-center gap-2">
+                <span class="stat-icon-box" style="background:#dcfce7;color:#16a34a;">
+                    <i class="bi bi-graph-up-arrow"></i>
+                </span>
+                <div>
+                    <div class="fw-bold">{{ active_trends_count|default:"—" }}+</div>
+                    <div class="text-muted small">Active Trends</div>
+                </div>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <span class="stat-icon-box" style="background:#dbeafe;color:#2563eb;">
+                    <i class="bi bi-journal-text"></i>
+                </span>
+                <div>
+                    <div class="fw-bold">{{ sources_count|default:"—" }}+</div>
+                    <div class="text-muted small">Sources Tracked</div>
+                </div>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <span class="stat-icon-box" style="background:#ffedd5;color:#ea580c;">
+                    <i class="bi bi-lightning-fill"></i>
+                </span>
+                <div>
+                    <div class="fw-bold">Real-time</div>
+                    <div class="text-muted small">Updates</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-5 hero-content">
+        <div class="hiw-card-wrapper">
+            <div class="hiw-glow-ring"></div>
+            <div class="card hiw-glass-card">
+            <div class="card-body">
+                <h6 class="text-uppercase text-muted small mb-3">
+                    <i class="bi bi-grid-3x3-gap"></i> How it works
+                </h6>
+                <div class="d-flex align-items-start gap-3 mb-3">
+                    <span class="step-chip step-chip-1">01</span>
+                    <div>
+                        <div class="fw-semibold">Collect articles</div>
+                        <div class="text-muted small">from startup &amp; tech RSS feeds</div>
+                    </div>
+                </div>
+                <div class="d-flex align-items-start gap-3 mb-3">
+                    <span class="step-chip step-chip-2">02</span>
+                    <div>
+                        <div class="fw-semibold">Detect rising keywords</div>
+                        <div class="text-muted small">&amp; trending topics</div>
+                    </div>
+                </div>
+                <div class="d-flex align-items-start gap-3 mb-3">
+                    <span class="step-chip step-chip-3">03</span>
+                    <div>
+                        <div class="fw-semibold">Score relevance</div>
+                        <div class="text-muted small">(0&ndash;100) for entrepreneurs</div>
+                    </div>
+                </div>
+                <div class="d-flex align-items-start gap-3">
+                    <span class="step-chip step-chip-4">04</span>
+                    <div>
+                        <div class="fw-semibold">Generate AI content briefs</div>
+                        <div class="text-muted small">&mdash; hooks, posts, reels</div>
+                    </div>
+                </div>
+            </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

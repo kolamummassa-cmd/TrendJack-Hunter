@@ -1,0 +1,457 @@
+/* Gradient text effect — used on the hero headline highlight */
+.gradient-text {
+    background: linear-gradient(90deg, #7c3aed, #9333ea, #4f46e5);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* Real step-chip colors from the reference (each is a two-color gradient,
+   not a flat color like the first draft used) */
+.step-chip-1 { background: linear-gradient(135deg, #3b82f6, #06b6d4); }
+.step-chip-2 { background: linear-gradient(135deg, #8b5cf6, #a855f7); }
+.step-chip-3 { background: linear-gradient(135deg, #ec4899, #f43f5e); }
+.step-chip-4 { background: linear-gradient(135deg, #f59e0b, #f97316); }
+
+/* Relevance badges — 4 tiers, matching the reference's exact thresholds:
+   80+ = strong match, 50-79 = decent, 1-49 = weak, 0 = irrelevant */
+.score-badge.score-strong {
+    background-color: #ecfdf5;
+    color: #059669;
+    border: 1px solid #a7f3d0;
+}
+.score-badge.score-decent {
+    background-color: #fffbeb;
+    color: #d97706;
+    border: 1px solid #fde68a;
+}
+.score-badge.score-weak {
+    background-color: #fff7ed;
+    color: #ea580c;
+    border: 1px solid #fed7aa;
+}
+.score-badge.score-irrelevant {
+    background-color: #fef2f2;
+    color: #ef4444;
+    border: 1px solid #fecaca;
+}
+
+
+:root {
+    --tj-navy: #0f1729;
+    --tj-purple: #7c3aed;
+    --tj-purple-dark: #6d28d9;
+    --tj-purple-light: #f5f3ff;
+    --tj-green: #16a34a;
+    --tj-amber: #d97706;
+    --tj-red: #dc2626;
+
+    /* Override Bootstrap's own primary color variables so every existing
+       btn-primary, badge bg-primary, border-primary, etc. across all
+       templates automatically becomes purple — no need to touch every
+       template's classes individually. */
+    --bs-primary: var(--tj-purple);
+    --bs-primary-rgb: 124, 58, 237;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #7c3aed, #4f46e5);
+    border: none;
+}
+
+.btn-primary:hover, .btn-primary:focus {
+    background: linear-gradient(135deg, #6d28d9, #4338ca);
+    border: none;
+}
+
+body {
+    /* Converts the reference's Tailwind gradient
+       (slate-50 via violet-50/30 to indigo-50/40) into a plain CSS
+       gradient, applied globally so every page shares the same soft
+       diagonal background, not just the home page hero. */
+    background: linear-gradient(135deg, #f8fafc 0%, #f5f3ff 50%, #eef2ff 100%);
+    background-attachment: fixed;
+    color: #1f2937;
+}
+
+.trendjack-navbar {
+    background-color: var(--tj-navy) !important;
+}
+
+.hero-section {
+    min-height: 75vh;
+    position: relative;
+    overflow: hidden;
+}
+
+.card {
+    border-radius: 0.75rem;
+}
+
+/* Score badges used on dashboard + detail pages */
+.score-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    border-radius: 0.5rem;
+    padding: 0.25rem 0.6rem;
+    font-size: 0.85rem;
+}
+
+
+
+.trend-card {
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.trend-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.08);
+}
+
+.brief-section h6 {
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+    color: #6b7280;
+    margin-top: 1.5rem;
+}
+
+/* --- New components for the redesigned hero/subscribe/detail pages --- */
+
+.hero-pill-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: #ede9fe;
+    color: var(--tj-purple);
+    font-weight: 600;
+    font-size: 0.9rem;
+    padding: 0.5rem 1.1rem;
+    border-radius: 999px;
+}
+
+.hero-pill-badge svg {
+    flex-shrink: 0;
+}
+
+.hero-highlight {
+    color: var(--tj-purple);
+}
+
+.step-chip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 0.75rem;
+    color: #fff;
+    font-weight: 700;
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+
+/* Each step gets its own accent color, matching the reference design */
+.step-chip-1 { background: #2563eb; }
+.step-chip-2 { background: var(--tj-purple); }
+.step-chip-3 { background: #db2777; }
+.step-chip-4 { background: #ea580c; }
+
+.stat-icon-box {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 0.6rem;
+    font-size: 1.1rem;
+}
+
+.gradient-banner {
+    background: linear-gradient(135deg, #7c3aed, #4f46e5);
+    color: #fff;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+}
+
+.best-value-ribbon {
+    position: absolute;
+    top: -0.75rem;
+    right: 1.5rem;
+    background: var(--tj-purple);
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    padding: 0.35rem 0.9rem;
+    border-radius: 999px;
+}
+
+.pricing-card {
+    position: relative;
+}
+
+.score-badge.score-irrelevant {
+    background-color: #fee2e2;
+    color: var(--tj-red);
+}
+
+.stat-number-relevance {
+    background: linear-gradient(90deg, #10b981, #14b8a6);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+.stat-number-trend {
+    background: linear-gradient(90deg, #3b82f6, #4f46e5);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* Custom shadow matching the reference's soft, violet-tinted depth —
+   Bootstrap's shadow-sm/shadow-md are too faint and pure gray */
+.card.shadow-sm, .card.shadow {
+    box-shadow: 0 10px 30px -5px rgba(124, 58, 237, 0.50),
+                0 4px 10px -2px rgba(0, 0, 0, 0.20) !important;
+    border: none !important;
+}
+
+/* Bigger, heavier hero headline matching the reference's text-5xl/6xl
+   scale — Bootstrap's display-4 tops out smaller than this */
+.hero-section h1.display-4 {
+    font-size: 3.75rem;
+    line-height: 1.25;
+    font-weight: 800;
+    margin-bottom: 1.5rem;
+}
+
+@media (max-width: 992px) {
+    .hero-section h1.display-4 {
+        font-size: 2.75rem;
+    }
+}
+
+.btn-watch-demo {
+    background: #fff;
+    border: none;
+    color: #1e293b;
+    font-weight: 700;
+    box-shadow: 0 10px 30px -5px rgba(124, 58, 237, 0.12),
+                0 4px 10px -2px rgba(0, 0, 0, 0.05);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.btn-watch-demo:hover {
+    background: #fff;
+    color: #1e293b;
+    transform: translateY(-1px);
+    box-shadow: 0 14px 34px -5px rgba(124, 58, 237, 0.18),
+                0 6px 14px -2px rgba(0, 0, 0, 0.08);
+}
+
+.btn-watch-demo i {
+    color: #1e293b;
+}
+
+.trendjack-navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1030;
+}
+
+/* Since the navbar is now removed from normal document flow, push page
+   content down by the navbar's height so it doesn't get hidden underneath */
+body {
+    padding-top: 64px;
+}
+
+.hero-section {
+    position: relative;
+    overflow: hidden;
+}
+
+.hero-bg-blob {
+    position: absolute;
+    border-radius: 9999px;
+    filter: blur(70px);
+    pointer-events: none;
+    z-index: 0;
+}
+
+.hero-blob-violet {
+    width: 288px;
+    height: 288px;
+    top: 80px;
+    left: 40px;
+    background: rgba(196, 181, 253, 0.3);
+}
+
+.hero-blob-indigo {
+    width: 384px;
+    height: 384px;
+    bottom: 80px;
+    right: 40px;
+    background: rgba(165, 180, 252, 0.25);
+}
+
+.hero-blob-glow {
+    width: 600px;
+    height: 600px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: linear-gradient(90deg, rgba(233, 213, 255, 0.2), rgba(251, 207, 232, 0.2));
+}
+
+.hero-content {
+    position: relative;
+    z-index: 1;
+}
+
+.hiw-card-wrapper {
+    position: relative;
+}
+
+.hiw-glow-ring {
+    position: absolute;
+    inset: -4px;
+    background: linear-gradient(135deg, #8b5cf6, #a855f7, #6366f1);
+    border-radius: 1.25rem;
+    opacity: 0.2;
+    filter: blur(20px);
+    z-index: 0;
+}
+
+.hiw-glass-card {
+    position: relative;
+    z-index: 1;
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-radius: 1.25rem;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+    border: none !important;
+}
+
+footer.text-center {
+    background: rgba(255, 255, 255, 0.5);
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+.hero-section .lead {
+    font-size: 1.35rem;
+    line-height: 1.6;
+    color: #475569;
+    font-weight: 450;
+}
+
+.filter-label {
+    display: block;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #334155;
+}
+
+.filter-input {
+    min-width: 220px;
+    height: 46px;
+    border-radius: 0.6rem;
+}
+
+.btn-filter-reset {
+    background: #f1f5f9;
+    border: none;
+    color: #334155;
+    font-weight: 600;
+    height: 46px;
+    display: inline-flex;
+    align-items: center;
+    padding: 0 1rem;
+    border-radius: 0.6rem;
+}
+
+.btn-filter-reset:hover {
+    background: #e2e8f0;
+    color: #334155;
+}
+
+.profile-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #7c3aed, #4f46e5);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+}
+
+.delete-icon-circle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: #fef2f2;
+    color: #ef4444;
+}
+
+.btn-mpesa {
+    background: linear-gradient(135deg, #10b981, #059669);
+    border: none;
+    color: #fff;
+    font-weight: 700;
+    padding: 0.8rem 1rem;
+    border-radius: 0.75rem;
+}
+
+.btn-mpesa:hover {
+    background: linear-gradient(135deg, #059669, #047857);
+    color: #fff;
+}
+
+.mpesa-icon-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 0.75rem;
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: #fff;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+}
+
+.input-group-mpesa .form-control {
+    border-left: none;
+    height: 50px;
+}
+
+.input-group-mpesa .input-group-text {
+    height: 50px;
+}
+
+.input-group-mpesa .form-control:focus,
+.input-group-mpesa:focus-within .input-group-text {
+    border-color: #10b981;
+    box-shadow: 0 0 0 0.25rem rgba(16, 185, 129, 0.15);
+}
+
+.mpesa-secure-box {
+    background: #ecfdf5;
+    border: 1px solid #a7f3d0;
+    border-radius: 0.75rem;
+    padding: 1rem;
+}
