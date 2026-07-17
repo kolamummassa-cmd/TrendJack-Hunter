@@ -140,9 +140,15 @@ WSGI_APPLICATION = 'config.wsgi.application'
 
 DATABASES = {
     'default': dj_database_url.config(
-        default='postgres://trendjack_user:%40Kolamu%23%2412@localhost:5432/trendjack'
+        default=os.environ.get('DATABASE_URL')
     )
 }
+
+if not DATABASES['default']:
+    raise Exception(
+        "DATABASE_URL is not set. Add it to your .env file — "
+        "no default is provided for security reasons."
+    )
 
 
 # Password validation
