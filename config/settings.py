@@ -104,8 +104,11 @@ SUBSCRIPTION_PRICE_MONTHLY_KES = os.environ.get('SUBSCRIPTION_PRICE_MONTHLY_KES'
 SUBSCRIPTION_PRICE_YEARLY_KES = os.environ.get('SUBSCRIPTION_PRICE_YEARLY_KES', '5000')
 
 MIDDLEWARE = [
+
     'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
+    # ... rest of your existing middleware stays exactly as-is
+   'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -187,6 +190,13 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+STORAGES = {
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
