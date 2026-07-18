@@ -1,5 +1,6 @@
 from django.db import models
 from articles.models import Article
+from django.utils import timezone
 
 
 class Trend(models.Model):
@@ -66,3 +67,26 @@ class Trend(models.Model):
 
     def __str__(self):
         return f"{self.name} (score={self.trend_score:.1f}, relevance={self.relevance_score})"
+
+
+class PipelineRun(models.Model):
+    """
+    Tracks each collect+detect pipeline run, so we can tell whether trend
+    data is "fresh enough" — e.g. to decide whether a new signup should
+    trigger an automatic refresh — without guessing from Article/Trend
+    timestamps alone.
+    """
+    started_at = models.DateTimeField(auto_now_add=True)
+    finished_at = models.DateTimeField(null=True, blank=True)
+    trends_detected = models.IntegerField(default=0)
+    succeeded = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ["-started_at"]
+
+    @classmethod
+    def is_data_stale(cls, minutes=60):
+        last_success = cls.objects.filter(succeeded=True).order_by("-finished_at").first()
+        if last_success is None or last_success.finished_at is None:
+            return True
+        return (timezone.now() - last_success.finished_at).total_seconds() > minutes * 60

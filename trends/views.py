@@ -8,6 +8,11 @@ from trends.models import Trend
 from briefs.models import ContentBrief
 from briefs.services.openai_client import generate_brief_data, BriefGenerationError
 
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_POST
+
+from trends.services.pipeline_runner import trigger_pipeline_if_stale
 
 def dashboard(request):
     """
@@ -125,3 +130,26 @@ def generate_brief(request, pk):
 
     messages.success(request, "Brief generated successfully!")
     return redirect("trends:trend_detail", pk=pk)
+
+
+@login_required
+@require_POST
+def refresh_trends(request):
+    """
+    Manual trigger for the collect+detect pipeline, reusing the same
+    staleness-guarded background runner used for signup/login. Lets us
+    control refresh timing directly while the user base is still small,
+    without wasting API quota on an hourly schedule nobody needs yet.
+    """
+    triggered = trigger_pipeline_if_stale(request.user, staleness_minutes=60)
+    if triggered:
+        messages.success(
+            request,
+            "Refreshing trends in the background — you'll get an email once it's done."
+        )
+    else:
+        messages.info(
+            request,
+            "Trends were already refreshed recently — check back a bit later."
+        )
+    return redirect("trends:dashboard")

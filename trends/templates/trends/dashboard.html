@@ -11,6 +11,12 @@
             &middot; {{ briefed_count }} with content brief{{ briefed_count|pluralize }}
         </p>
     </div>
+    <form method="post" action="{% url 'trends:refresh_trends' %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-primary">
+            <i class="bi bi-arrow-clockwise"></i> Refresh Trends
+        </button>
+    </form>
 </div>
 
 <!-- Filter / sort controls -->
@@ -92,10 +98,19 @@
     {% endfor %}
 </div>
 {% else %}
-<div class="alert alert-info">
-    <i class="bi bi-info-circle"></i>
-    No trends match these filters yet. Try resetting filters, or run:
-    <code>python manage.py collect_articles</code> then <code>python manage.py detect_trends</code>.
+<div class="alert alert-info d-flex justify-content-between align-items-center flex-wrap gap-3">
+    <div>
+        <i class="bi bi-hourglass-split"></i>
+        No trends yet — we're actively scanning for the latest ones.
+        This usually takes a minute or two the first time. Check back shortly,
+        or refresh the page now.
+    </div>
+    <form method="post" action="{% url 'trends:refresh_trends' %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-sm btn-outline-primary">
+            <i class="bi bi-arrow-clockwise"></i> Refresh Now
+        </button>
+    </form>
 </div>
 {% endif %}
 {% endblock %}
