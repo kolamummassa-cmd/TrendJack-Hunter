@@ -206,3 +206,4 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # --- Email (Resend HTTP)
 DEFAULT_FROM_EMAIL = "Trendjack Hunter <onboarding@resend.dev>"
 RESEND_API_KEY = os.environ.get("RESEND_API_KEY")
+EMAIL_BACKEND = "config.email_backend.ResendEmailBackend"
