@@ -27,14 +27,11 @@ class Profile(models.Model):
         return f"Profile for {self.user.username}"
 
     def has_active_subscription(self):
-        """
-        True if this user has a subscription that is marked active AND
-        hasn't passed its current_period_end yet.
-        """
-        sub = self.user.subscriptions.filter(status=Subscription.STATUS_ACTIVE).order_by("-current_period_end").first()
-        if sub is None:
-            return False
-        return sub.current_period_end is not None and sub.current_period_end > timezone.now()
+        from django.conf import settings
+        if not settings.SUBSCRIPTION_REQUIRED:
+            return True
+        sub = self.active_subscription()
+        return sub is not None
 
     def active_subscription(self):
         return self.user.subscriptions.filter(status=Subscription.STATUS_ACTIVE).order_by("-current_period_end").first()

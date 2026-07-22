@@ -66,30 +66,30 @@
 </div>
 
 <!-- Subscription Access Banner -->
-{% if not has_access %}
-<div class="gradient-banner mb-4">
-    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
-        <div>
-            <h5 class="mb-1">
-                <i class="bi bi-star-fill"></i> Subscription Required
-            </h5>
-            <p class="mb-0 small">
-                Subscribe to unlock full AI-generated content briefs for every trend.
-                Pay monthly or yearly, by card or M-Pesa.
-            </p>
-        </div>
-        {% if user.is_authenticated %}
-            <a href="{% url 'accounts:subscribe' %}" class="btn btn-light fw-bold">
-                Subscribe to Unlock
-            </a>
-        {% else %}
-            <a href="{% url 'accounts:signup' %}?next={{ request.path|urlencode }}" class="btn btn-light fw-bold">
-                Subscribe to Unlock
-            </a>
-        {% endif %}
-    </div>
-</div>
-{% endif %}
+<!--{% if not has_access %}-->
+<!--<div class="gradient-banner mb-4">-->
+<!--    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">-->
+<!--        <div>-->
+<!--            <h5 class="mb-1">-->
+<!--                <i class="bi bi-star-fill"></i> Subscription Required-->
+<!--            </h5>-->
+<!--            <p class="mb-0 small">-->
+<!--                Subscribe to unlock full AI-generated content briefs for every trend.-->
+<!--                Pay monthly or yearly, by card or M-Pesa.-->
+<!--            </p>-->
+<!--        </div>-->
+<!--        {% if user.is_authenticated %}-->
+<!--            <a href="{% url 'accounts:subscribe' %}" class="btn btn-light fw-bold">-->
+<!--                Subscribe to Unlock-->
+<!--            </a>-->
+<!--        {% else %}-->
+<!--            <a href="{% url 'accounts:signup' %}?next={{ request.path|urlencode }}" class="btn btn-light fw-bold">-->
+<!--                Subscribe to Unlock-->
+<!--            </a>-->
+<!--        {% endif %}-->
+<!--    </div>-->
+<!--</div>-->
+<!--{% endif %}-->
 
 {% if trend.brief %}
 {% with brief=trend.brief %}
@@ -240,7 +240,7 @@
             Its relevance score ({{ trend.relevance_score }}) is below the typical briefing threshold.
         {% endif %}
     </div>
-    {% if has_access and trend.relevance_score >= 40 %}
+{% if user.is_authenticated and trend.relevance_score >= 40 %}
     <form method="post" action="{% url 'trends:generate_brief' trend.pk %}">
         {% csrf_token %}
         <button type="submit" class="btn btn-primary">

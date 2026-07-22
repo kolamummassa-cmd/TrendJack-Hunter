@@ -12,5 +12,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('core.urls')),
     path('trends/', include('trends.urls')),
+    path('accounts/', include('allauth.socialaccount.providers.google.urls')),
     path('accounts/', include('accounts.urls')),
+
 ]

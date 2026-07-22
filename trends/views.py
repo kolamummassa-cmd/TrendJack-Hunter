@@ -80,10 +80,6 @@ def generate_brief(request, pk):
     """
     trend = get_object_or_404(Trend, pk=pk)
 
-    profile = getattr(request.user, "profile", None)
-    if profile is None or not profile.has_active_subscription():
-        messages.error(request, "An active subscription is required to generate briefs.")
-        return redirect("trends:trend_detail", pk=pk)
 
     if trend.relevance_score < settings.MIN_RELEVANCE_SCORE_FOR_BRIEF:
         messages.error(

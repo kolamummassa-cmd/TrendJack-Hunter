@@ -36,6 +36,9 @@ DEBUG = os.environ.get('DJANGO_DEBUG', 'True') == 'True'
 
 ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 
+
+SUBSCRIPTION_REQUIRED = False
+
 RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
 if RENDER_EXTERNAL_HOSTNAME:
     ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
@@ -48,6 +51,12 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',
+
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',
 
     # Trendjack Hunter apps
     'core',
@@ -56,6 +65,28 @@ INSTALLED_APPS = [
     'briefs',
     'accounts',
 ]
+
+
+SITE_ID = 1
+
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',
+]
+
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'APP': {
+            'client_id': os.environ.get('GOOGLE_OAUTH_CLIENT_ID', ''),
+            'secret': os.environ.get('GOOGLE_OAUTH_CLIENT_SECRET', ''),
+            'key': ''
+        },
+        'SCOPE': ['profile', 'email'],
+    }
+}
+
+# Google already verifies the email, so no extra confirmation step needed
+SOCIALACCOUNT_LOGIN_ON_GET = True
 
 # -----------------------------------------------------------------------
 # Trendjack Hunter custom settings
@@ -106,14 +137,13 @@ SUBSCRIPTION_PRICE_MONTHLY_KES = os.environ.get('SUBSCRIPTION_PRICE_MONTHLY_KES'
 SUBSCRIPTION_PRICE_YEARLY_KES = os.environ.get('SUBSCRIPTION_PRICE_YEARLY_KES', '5000')
 
 MIDDLEWARE = [
-
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
-    # ... rest of your existing middleware stays exactly as-is
-   'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'allauth.account.middleware.AccountMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -130,6 +160,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'core.context_processors.subscription_flag',
             ],
         },
     },
