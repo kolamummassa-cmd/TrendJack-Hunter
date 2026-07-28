@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator
 from django.shortcuts import render, get_object_or_404, redirect
 from django.views.decorators.http import require_POST
 
@@ -40,14 +41,21 @@ def dashboard(request):
 
     trends = trends.order_by(order_by)
 
+    total_count = trends.count()
+    briefed_count = trends.filter(status=Trend.STATUS_BRIEFED).count()
+
+    paginator = Paginator(trends, 12)
+    page_obj = paginator.get_page(request.GET.get("page"))
+
     context = {
-        "trends": trends,
+        "trends": page_obj,
+        "page_obj": page_obj,
         "current_sort": sort,
         "current_status": status,
         "current_min_relevance": min_relevance,
         "status_choices": Trend.STATUS_CHOICES,
-        "total_count": trends.count(),
-        "briefed_count": trends.filter(status=Trend.STATUS_BRIEFED).count(),
+        "total_count": total_count,
+        "briefed_count": briefed_count,
     }
     return render(request, "trends/dashboard.html", context)
 
