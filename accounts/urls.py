@@ -48,6 +48,20 @@ urlpatterns = [
     path("subscribe/return/", views.subscribe_return, name="subscribe_return"),
     path("subscribe/status/", views.check_subscription_status, name="check_subscription_status"),
 
+    path(
+        "account/password/",
+        auth_views.PasswordChangeView.as_view(
+            template_name="accounts/password_change.html",
+            success_url=reverse_lazy("accounts:password_change_done"),
+        ),
+        name="password_change",
+    ),
+    path(
+        "account/password/done/",
+        auth_views.PasswordChangeDoneView.as_view(template_name="accounts/password_change_done.html"),
+        name="password_change_done",
+    ),
+
     path("account/", views.my_account, name="my_account"),
     path("account/cancel/", views.cancel_subscription, name="cancel_subscription"),
     path("account/billing/<int:sub_id>/delete/", views.delete_subscription_record, name="delete_subscription_record"),

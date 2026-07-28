@@ -18,7 +18,7 @@ from trends.models import PipelineRun, Trend
 logger = logging.getLogger(__name__)
 
 
-def _run_pipeline(user_email=None, username=None):
+def _run_pipeline(user_id=None, user_email=None, username=None):
     run = PipelineRun.objects.create()
     try:
         before_count = Trend.objects.count()
@@ -30,6 +30,16 @@ def _run_pipeline(user_email=None, username=None):
         run.trends_detected = after_count
         run.succeeded = True
         run.save(update_fields=["finished_at", "trends_detected", "succeeded"])
+
+        if user_id:
+            from django.contrib.auth import get_user_model
+
+            User = get_user_model()
+            try:
+                user = User.objects.get(pk=user_id)
+                user.visible_trends.add(*Trend.objects.all())
+            except User.DoesNotExist:
+                pass
 
         if user_email:
             send_mail(
@@ -64,7 +74,7 @@ def trigger_pipeline_if_stale(user, staleness_minutes=60):
 
     thread = threading.Thread(
         target=_run_pipeline,
-        kwargs={"user_email": user.email, "username": user.username},
+        kwargs={"user_id": user.id, "user_email": user.email, "username": user.username},
         daemon=True,
     )
     thread.start()

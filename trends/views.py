@@ -15,10 +15,14 @@ from django.views.decorators.http import require_POST
 
 from trends.services.pipeline_runner import trigger_pipeline_if_stale
 
+@login_required(login_url="accounts:signup")
 def dashboard(request):
     """
-    Main dashboard: lists all detected trends as cards, with sorting and
-    filtering controls.
+    Main dashboard: lists trends the current user has unlocked, as cards,
+    with sorting and filtering controls. Trend data itself is global/shared,
+    but each user only sees it once they've triggered at least one refresh
+    (see Trend.visible_to) — so a brand new signup starts with an empty
+    dashboard until they click Refresh Trends.
     """
     sort = request.GET.get("sort", "trend_score")
     status = request.GET.get("status", "all")
@@ -31,7 +35,7 @@ def dashboard(request):
     }
     order_by = sort_field_map.get(sort, "-trend_score")
 
-    trends = Trend.objects.all().select_related("brief")
+    trends = Trend.objects.filter(visible_to=request.user).select_related("brief")
 
     if status in dict(Trend.STATUS_CHOICES):
         trends = trends.filter(status=status)
@@ -60,15 +64,16 @@ def dashboard(request):
     return render(request, "trends/dashboard.html", context)
 
 
+@login_required(login_url="accounts:signup")
 def trend_detail(request, pk):
-    trend = get_object_or_404(Trend, pk=pk)
+    # Scoped to visible_to=request.user as well as pk, so a signed-up user
+    # can't view a trend they haven't unlocked yet by guessing/sharing a URL —
+    # it 404s instead, same as a trend that doesn't exist at all.
+    trend = get_object_or_404(Trend, pk=pk, visible_to=request.user)
     brief = getattr(trend, 'brief', None)
 
-    has_access = False
-    if request.user.is_authenticated:
-        profile = getattr(request.user, "profile", None)
-        if profile is not None:
-            has_access = profile.has_active_subscription()
+    profile = getattr(request.user, "profile", None)
+    has_access = profile.has_active_subscription() if profile is not None else False
 
     return render(request, "trends/trend_detail.html", {
         "trend": trend,
@@ -144,7 +149,15 @@ def refresh_trends(request):
     staleness-guarded background runner used for signup/login. Lets us
     control refresh timing directly while the user base is still small,
     without wasting API quota on an hourly schedule nobody needs yet.
+
+    Also unlocks the current trend board for this user immediately — trend
+    data is global/shared, so if it's already fresh there's no need to make
+    them wait for a new pipeline run just to see what already exists. If a
+    new background run does kick off (data was stale), it grants this user
+    visibility to whatever it finds too once it finishes.
     """
+    request.user.visible_trends.add(*Trend.objects.all())
+
     triggered = trigger_pipeline_if_stale(request.user, staleness_minutes=60)
     if triggered:
         messages.success(

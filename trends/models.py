@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import models
 from articles.models import Article
 from django.utils import timezone
@@ -52,6 +53,18 @@ class Trend(models.Model):
         choices=STATUS_CHOICES,
         default=STATUS_DETECTED,
         help_text="Pipeline state: detected -> briefed (has a ContentBrief) -> archived.",
+    )
+    visible_to = models.ManyToManyField(
+        settings.AUTH_USER_MODEL,
+        related_name="visible_trends",
+        blank=True,
+        help_text=(
+            "Users who have 'unlocked' this trend by triggering at least one "
+            "refresh since signing up. Trend data itself stays global/shared "
+            "(same real-world trends for everyone) — this field only controls "
+            "who currently sees it on their dashboard, so a brand new signup "
+            "starts with an empty dashboard until they refresh."
+        ),
     )
     created_at = models.DateTimeField(
         auto_now_add=True,
