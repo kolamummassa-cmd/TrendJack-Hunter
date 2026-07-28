@@ -52,17 +52,20 @@ def _generate_and_store_code(request, username, email, password_hash):
         "created_at": dj_timezone.now().isoformat(),
         "next": request.GET.get("next", "") or request.POST.get("next", ""),
     }
-    send_mail(
-        subject="Your Trendjack Hunter verification code",
-        message=(
-            f"Your verification code is: {code}\n\n"
-            f"Enter this on the signup page to finish creating your account. "
-            f"This code expires in {CODE_VALID_MINUTES} minutes.\n\n"
-            f"If you didn't request this, you can safely ignore this email."
-        ),
-        from_email=None,
-        recipient_list=[email],
-    )
+    try:
+        send_mail(
+            subject="Your Trendjack Hunter verification code",
+            message=(
+                f"Your verification code is: {code}\n\n"
+                f"Enter this on the signup page to finish creating your account. "
+                f"This code expires in {CODE_VALID_MINUTES} minutes.\n\n"
+                f"If you didn't request this, you can safely ignore this email."
+            ),
+            from_email=None,
+            recipient_list=[email],
+        )
+    except Exception:
+        logger.exception("Failed to send verification code email to %s", email)
     print(f"[DEBUG] Verification code for {email}: {code}")  # remove once confirmed working
 
 
@@ -122,6 +125,7 @@ def verify_signup_code(request):
             user.profile.email_verified = True
             user.profile.save(update_fields=["email_verified"])
             del request.session[SIGNUP_SESSION_KEY]
+            user.backend = "django.contrib.auth.backends.ModelBackend"
             auth_login(request, user)
             messages.success(request, "Your account is verified and ready to go!")
             next_url = pending.get("next") or "accounts:subscribe"
