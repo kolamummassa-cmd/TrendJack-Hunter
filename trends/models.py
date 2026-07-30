@@ -74,6 +74,16 @@ class Trend(models.Model):
         auto_now=True,
         help_text="Last time trend_score/relevance_score were recalculated.",
     )
+    expiry_warning_sent_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text=(
+            "When the 'this trend is about to be deleted' warning email was "
+            "sent, if it has been. Set by the expire_trends command. Trends "
+            "that already have a brief are never warned about or deleted — "
+            "this only applies to un-briefed trends approaching 3 days old."
+        ),
+    )
 
     class Meta:
         ordering = ["-trend_score"]

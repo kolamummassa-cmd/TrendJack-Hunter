@@ -1,7 +1,10 @@
 # trends/services/keyword_extractor.py
 
+import logging
 import re
 from collections import Counter
+
+logger = logging.getLogger(__name__)
 
 # Words that should never be trends
 STOPWORDS = {
@@ -39,6 +42,25 @@ JUNK_PATTERNS = [
     r"^#\w+$",                   # standalone hashtags like #Shorts, #ad
 ]
 
+# Short "words" that are legitimate on their own (acronyms/abbreviations) and
+# shouldn't trip the gibberish guard below, even though they're <= 2 letters.
+ALLOWED_SHORT_WORDS = {
+    "ai", "vc", "vr", "ar", "ml", "io", "us", "uk", "eu", "3d", "ux", "ui",
+}
+
+
+def _has_gibberish_short_word(words: list[str]) -> bool:
+    """
+    Catches fragments like "Cr In" or "Must Know" made of near-meaningless
+    short tokens — real multi-word trend phrases almost always have at least
+    one word longer than 2 letters that isn't a stopword.
+    """
+    for w in words:
+        stripped = re.sub(r"[^a-z0-9]", "", w)
+        if stripped and len(stripped) <= 2 and stripped not in ALLOWED_SHORT_WORDS:
+            return True
+    return False
+
 
 def is_junk(phrase: str) -> bool:
     phrase_lower = phrase.lower().strip()
@@ -73,31 +95,82 @@ def is_junk(phrase: str) -> bool:
             return True
     if len(words) > 8:
         return True
+
+    # Gibberish/fragment guard — e.g. "Cr In", "Must Know"
+    if _has_gibberish_short_word(words):
+        return True
+
     return False
+
+
+# --- spaCy model loading -----------------------------------------------
+# Loaded once and cached at module level. Previously this was reloaded from
+# disk on every single call, which was slow and meant any transient failure
+# (e.g. the model not being installed at all) silently degraded every future
+# call too, with no way to notice it had happened.
+_NLP = None
+_NLP_LOAD_ATTEMPTED = False
+
+
+def _get_nlp():
+    global _NLP, _NLP_LOAD_ATTEMPTED
+    if _NLP is not None or _NLP_LOAD_ATTEMPTED:
+        return _NLP
+
+    _NLP_LOAD_ATTEMPTED = True
+    try:
+        import spacy
+        _NLP = spacy.load("en_core_web_sm")
+    except Exception:
+        logger.exception(
+            "Failed to load spaCy model 'en_core_web_sm' — falling back to the "
+            "regex keyword extractor for the rest of this process's lifetime. "
+            "Trend name quality will be significantly degraded (no "
+            "part-of-speech tagging or named-entity filtering, so person names "
+            "and sentence fragments will leak through as 'trends'). Make sure "
+            "en_core_web_sm is actually installed in this environment."
+        )
+        _NLP = None
+    return _NLP
 
 
 def extract_keywords(text: str) -> list[str]:
     """
     Extract candidate trend phrases from text.
-    Tries spaCy first, falls back to regex if model not available.
+    Uses spaCy (POS + named-entity aware) when the model is available,
+    falling back to a much cruder regex extractor if it isn't.
     """
-    try:
-        import spacy
-        nlp = spacy.load("en_core_web_sm")
+    nlp = _get_nlp()
+    if nlp is not None:
         return _extract_spacy(text, nlp)
-    except Exception:
-        return _extract_regex(text)
+    return _extract_regex(text)
+
+
+def _chunk_overlaps_person(chunk, person_spans) -> bool:
+    for ent in person_spans:
+        if chunk.start < ent.end and chunk.end > ent.start:
+            return True
+    return False
 
 
 def _extract_spacy(text: str, nlp) -> list[str]:
     doc = nlp(text[:100000])  # cap to avoid memory issues
+
+    # A bare person's name ("Elon Musk", "Pete Davidson") isn't itself a
+    # postable "trend" the way a topic/event/company is — reject any noun
+    # chunk that overlaps a PERSON entity.
+    person_spans = [ent for ent in doc.ents if ent.label_ == "PERSON"]
+
     phrases = []
     for chunk in doc.noun_chunks:
         # Only keep chunks where the root is a proper noun or noun (not pronoun/determiner)
         if chunk.root.pos_ in ("NOUN", "PROPN") and chunk.root.dep_ not in ("det",):
             phrase = chunk.text.strip()
-            if not is_junk(phrase):
-                phrases.append(phrase)
+            if is_junk(phrase):
+                continue
+            if _chunk_overlaps_person(chunk, person_spans):
+                continue
+            phrases.append(phrase)
     return phrases
 
 

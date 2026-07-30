@@ -26,7 +26,12 @@ def dashboard(request):
     """
     sort = request.GET.get("sort", "trend_score")
     status = request.GET.get("status", "all")
-    min_relevance = request.GET.get("min_relevance", "")
+    # Defaults to hiding trends already scored 0/"Irrelevant" — a user can
+    # still see everything by clearing this filter box manually. Only kicks
+    # in when the param is missing entirely (first load); submitting the
+    # filter form with the box blank passes "" explicitly, which is left
+    # unfiltered on purpose.
+    min_relevance = request.GET.get("min_relevance", "1")
 
     sort_field_map = {
         "trend_score": "-trend_score",

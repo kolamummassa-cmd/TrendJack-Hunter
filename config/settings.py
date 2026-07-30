@@ -118,7 +118,7 @@ REDDIT_USER_AGENT = os.environ.get('REDDIT_USER_AGENT', 'TrendjackHunter/1.0')
 # -----------------------------------------------------------------------
 
 LOGIN_URL = 'accounts:login'
-LOGIN_REDIRECT_URL = 'accounts:subscribe'
+LOGIN_REDIRECT_URL = 'trends:dashboard'
 LOGOUT_REDIRECT_URL = 'core:home'
 
 # IntaSend API keys — get these from your IntaSend dashboard (Settings > API keys).

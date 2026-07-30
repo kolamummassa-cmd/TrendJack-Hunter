@@ -128,7 +128,7 @@ def verify_signup_code(request):
             user.backend = "django.contrib.auth.backends.ModelBackend"
             auth_login(request, user)
             messages.success(request, "Your account is verified and ready to go!")
-            next_url = pending.get("next") or "accounts:subscribe"
+            next_url = pending.get("next") or "trends:dashboard"
             return redirect(next_url if next_url.startswith("/") else reverse_lazy(next_url))
 
     return render(request, "accounts/verify_signup_code.html", {"email": pending["email"]})
