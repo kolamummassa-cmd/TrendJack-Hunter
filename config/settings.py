@@ -113,6 +113,13 @@ REDDIT_CLIENT_ID = os.environ.get('REDDIT_CLIENT_ID', '')
 REDDIT_CLIENT_SECRET = os.environ.get('REDDIT_CLIENT_SECRET', '')
 REDDIT_USER_AGENT = os.environ.get('REDDIT_USER_AGENT', 'TrendjackHunter/1.0')
 
+# Secret key required (as ?key=... ) to hit /trends/internal/expire-trends/,
+# the HTTP trigger for the trend-expiry job. Lets a free external scheduler
+# (GitHub Actions, cron-job.org, etc.) run it daily without needing a paid
+# Render Cron Job. Left blank by default, which makes the endpoint always
+# reject requests — you must set a real random value in .env before use.
+EXPIRE_TRENDS_SECRET_KEY = os.environ.get('EXPIRE_TRENDS_SECRET_KEY', '')
+
 # -----------------------------------------------------------------------
 # Accounts / Subscriptions / IntaSend settings
 # -----------------------------------------------------------------------

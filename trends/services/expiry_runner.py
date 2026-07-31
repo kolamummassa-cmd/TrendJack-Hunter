@@ -1,0 +1,100 @@
+"""
+Core logic for warning users about un-briefed trends approaching 3 days old,
+then deleting them 1 day after the warning if still un-briefed. Shared by
+the `expire_trends` management command and the secret-protected HTTP trigger
+in trends/views.py, so both entry points stay in sync with one
+implementation instead of drifting apart.
+"""
+
+import logging
+from collections import defaultdict
+
+from django.core.mail import send_mail
+from django.utils import timezone
+
+from trends.models import Trend
+
+logger = logging.getLogger(__name__)
+
+WARNING_AGE_DAYS = 3
+GRACE_PERIOD_DAYS = 1
+
+
+def run_trend_expiry() -> dict:
+    """
+    Runs one full pass: sends warning emails for newly-due trends, then
+    deletes trends whose grace period has elapsed. Trends that already have
+    a brief are never touched — deleting a trend cascades and would destroy
+    its ContentBrief too, so briefed trends are permanently exempt.
+
+    Returns a dict of counts, used both for the management command's stdout
+    output and the HTTP trigger's JSON response.
+    """
+    warned_users, warned_trends = _send_warnings()
+    deleted_count = _delete_expired()
+    return {
+        "warned_users": warned_users,
+        "warned_trends": warned_trends,
+        "deleted_trends": deleted_count,
+    }
+
+
+def _send_warnings():
+    cutoff = timezone.now() - timezone.timedelta(days=WARNING_AGE_DAYS)
+    due = list(
+        Trend.objects.filter(
+            created_at__lte=cutoff,
+            brief__isnull=True,
+            expiry_warning_sent_at__isnull=True,
+        ).prefetch_related("visible_to")
+    )
+
+    by_user = defaultdict(list)
+    for trend in due:
+        for user in trend.visible_to.all():
+            if user.email:
+                by_user[user].append(trend)
+
+    for user, trends in by_user.items():
+        trend_list = "\n".join(f"- {t.name}" for t in trends)
+        try:
+            send_mail(
+                subject="Trends expiring soon on Trendjack Hunter",
+                message=(
+                    f"Hi {user.username},\n\n"
+                    f"The following trend(s) on your dashboard haven't been "
+                    f"briefed yet, and will be automatically removed in "
+                    f"{GRACE_PERIOD_DAYS} day if no brief is generated for "
+                    f"them first:\n\n"
+                    f"{trend_list}\n\n"
+                    f"Head over to your dashboard now if you'd like to "
+                    f"generate a content brief for any of them before "
+                    f"they're gone.\n\n"
+                    f"— Trendjack Hunter"
+                ),
+                from_email=None,
+                recipient_list=[user.email],
+            )
+        except Exception:
+            logger.exception(
+                "Failed to send trend-expiry warning email to %s", user.email
+            )
+
+    if due:
+        Trend.objects.filter(pk__in=[t.pk for t in due]).update(
+            expiry_warning_sent_at=timezone.now()
+        )
+
+    return len(by_user), len(due)
+
+
+def _delete_expired():
+    grace_cutoff = timezone.now() - timezone.timedelta(days=GRACE_PERIOD_DAYS)
+    expired = Trend.objects.filter(
+        brief__isnull=True,
+        expiry_warning_sent_at__isnull=False,
+        expiry_warning_sent_at__lte=grace_cutoff,
+    )
+    count = expired.count()
+    expired.delete()
+    return count

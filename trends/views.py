@@ -2,7 +2,9 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
+from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
+from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
 from trends.models import Trend
@@ -14,6 +16,7 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 
 from trends.services.pipeline_runner import trigger_pipeline_if_stale
+from trends.services.expiry_runner import run_trend_expiry
 
 @login_required(login_url="accounts:signup")
 def dashboard(request):
@@ -175,3 +178,24 @@ def refresh_trends(request):
             "Trends were already refreshed recently — check back a bit later."
         )
     return redirect("trends:dashboard")
+
+
+@csrf_exempt
+def trigger_expire_trends(request):
+    """
+    HTTP-triggerable version of the `expire_trends` management command,
+    meant to be pinged once a day by a free external scheduler (GitHub
+    Actions, cron-job.org, etc.) instead of a paid Render Cron Job.
+
+    Protected by a shared secret passed as ?key=... — if EXPIRE_TRENDS_SECRET_KEY
+    isn't set in the environment, or the key doesn't match, this always
+    rejects the request rather than silently running unprotected.
+    """
+    expected_key = settings.EXPIRE_TRENDS_SECRET_KEY
+    provided_key = request.GET.get("key", "")
+
+    if not expected_key or provided_key != expected_key:
+        return JsonResponse({"error": "Forbidden"}, status=403)
+
+    result = run_trend_expiry()
+    return JsonResponse(result)
